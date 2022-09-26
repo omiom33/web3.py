@@ -41,11 +41,7 @@ def load_secret() -> str:
 
 
 def build_http_headers() -> Optional[Dict[str, Tuple[str, str]]]:
-    secret = load_secret()
-    if secret:
-        headers = {"auth": ("", secret)}
-        return headers
-    return None
+    return {"auth": ("", secret)} if (secret := load_secret()) else None
 
 
 def build_infura_url(domain: str) -> URI:
@@ -55,7 +51,7 @@ def build_infura_url(domain: str) -> URI:
 
     if scheme == WEBSOCKET_SCHEME and secret != "":
         return URI(f"{scheme}://:{secret}@{domain}/ws/v3/{key}")
-    elif scheme == WEBSOCKET_SCHEME and secret == "":
+    elif scheme == WEBSOCKET_SCHEME:
         return URI(f"{scheme}://{domain}/ws/v3/{key}")
     elif scheme == HTTP_SCHEME:
         return URI(f"{scheme}://{domain}/v3/{key}")

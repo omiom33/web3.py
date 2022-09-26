@@ -41,12 +41,11 @@ class Dependencies:
         }
         return tuple(item_dict.items())
 
-    def values(self) -> List["Package"]:  # type: ignore  # noqa: F821
+    def values(self) -> List["Package"]:    # type: ignore  # noqa: F821
         """
         Return an iterable of the available `Package` instances.
         """
-        values = [self.build_dependencies.get(name) for name in self.build_dependencies]
-        return values
+        return [self.build_dependencies.get(name) for name in self.build_dependencies]
 
     def get_dependency_package(
         self, package_name: str

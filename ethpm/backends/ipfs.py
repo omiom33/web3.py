@@ -98,8 +98,7 @@ class IPFSOverHTTPBackend(BaseIPFSBackend):
 
     def pin_assets(self, file_or_dir_path: Path) -> List[Dict[str, str]]:
         if file_or_dir_path.is_dir():
-            dir_data = self.client.add(str(file_or_dir_path), recursive=True)
-            return dir_data
+            return self.client.add(str(file_or_dir_path), recursive=True)
         elif file_or_dir_path.is_file():
             file_data = self.client.add(str(file_or_dir_path), recursive=False)
             return [file_data]

@@ -91,14 +91,12 @@ def gen_bounded_segments(start: int, stop: int, step: int) -> Iterable[Tuple[int
     if start + step >= stop:
         yield (start, stop)
         return
-    for segment in zip(
-        range(start, stop - step + 1, step), range(start + step, stop + 1, step)
-    ):
-        yield segment
+    yield from zip(
+        range(start, stop - step + 1, step),
+        range(start + step, stop + 1, step),
+    )
 
-    remainder = (stop - start) % step
-    #  Handle the remainder
-    if remainder:
+    if remainder := (stop - start) % step:
         yield (stop - remainder, stop)
 
 
@@ -178,9 +176,7 @@ def iter_latest_block_ranges(
     (46, 50)
     """
     for latest_block in iter_latest_block(w3, to_block):
-        if latest_block is None:
-            yield (None, None)
-        elif from_block > latest_block:
+        if latest_block is None or from_block > latest_block:
             yield (None, None)
         else:
             yield (from_block, latest_block)
@@ -247,16 +243,16 @@ class RequestLogs:
 
     @property
     def to_block(self) -> BlockNumber:
-        if self._to_block is None:
-            to_block = self.w3.eth.block_number
-        elif self._to_block == "latest":
-            to_block = self.w3.eth.block_number
-        elif is_hex(self._to_block):
-            to_block = BlockNumber(hex_to_integer(self._to_block))  # type: ignore
+        if self._to_block is None or self._to_block == "latest":
+            return self.w3.eth.block_number
+        elif (
+            self._to_block is not None
+            and self._to_block != "latest"
+            and is_hex(self._to_block)
+        ):
+            return BlockNumber(hex_to_integer(self._to_block))
         else:
-            to_block = self._to_block
-
-        return to_block
+            return self._to_block
 
     def _get_filter_changes(self) -> Iterator[List[LogReceipt]]:
         for start, stop in iter_latest_block_ranges(

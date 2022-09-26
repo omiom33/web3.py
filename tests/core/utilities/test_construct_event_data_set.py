@@ -37,7 +37,7 @@ EVENT_2_TOPIC = "0x84fa8d791e38d043e0c66b2437051fd24d32b1022f91a754123d8e1746e98
 
 def hex_and_pad(i):
     unpadded_hex_value = hex(i).rstrip("L")
-    return "0x" + unpadded_hex_value[2:].zfill(64)
+    return f"0x{unpadded_hex_value[2:].zfill(64)}"
 
 
 @pytest.mark.parametrize(

@@ -46,9 +46,7 @@ class ReadableAttributeDict(Mapping[TKey, TValue]):
     def __init__(
         self, dictionary: Dict[TKey, TValue], *args: Any, **kwargs: Any
     ) -> None:
-        # type ignored on 46/50 b/c dict() expects str index type not TKey
-        self.__dict__ = dict(dictionary)  # type: ignore
-        self.__dict__.update(dict(*args, **kwargs))
+        self.__dict__ = dictionary | dict(*args, **kwargs)
 
     def __getitem__(self, key: TKey) -> TValue:
         return self.__dict__[key]  # type: ignore
@@ -60,14 +58,14 @@ class ReadableAttributeDict(Mapping[TKey, TValue]):
         return len(self.__dict__)
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f"({self.__dict__!r})"
+        return f"{self.__class__.__name__}({self.__dict__!r})"
 
     def _repr_pretty_(self, builder: Any, cycle: bool) -> None:
         """
         Custom pretty output for the IPython console
         https://ipython.readthedocs.io/en/stable/api/generated/IPython.lib.pretty.html#extending  # noqa: E501
         """
-        builder.text(self.__class__.__name__ + "(")
+        builder.text(f"{self.__class__.__name__}(")
         if cycle:
             builder.text("<cycle>")
         else:
@@ -76,11 +74,7 @@ class ReadableAttributeDict(Mapping[TKey, TValue]):
 
     @classmethod
     def _apply_if_mapping(cls: Type[T], value: TValue) -> Union[T, TValue]:
-        if isinstance(value, Mapping):
-            # error: Too many arguments for "object"
-            return cls(value)  # type: ignore
-        else:
-            return value
+        return cls(value) if isinstance(value, Mapping) else value
 
     @classmethod
     def recursive(cls, value: TValue) -> "ReadableAttributeDict[TKey, TValue]":
@@ -117,10 +111,7 @@ class AttributeDict(ReadableAttributeDict[TKey, TValue], Hashable):
         return hash(tuple(sorted(self.items())))
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, Mapping):
-            return self.__dict__ == dict(other)
-        else:
-            return False
+        return self.__dict__ == dict(other) if isinstance(other, Mapping) else False
 
 
 class NamedElementOnion(Mapping[TKey, TValue]):
@@ -168,7 +159,7 @@ class NamedElementOnion(Mapping[TKey, TValue]):
         """
         if not is_integer(layer):
             raise TypeError("The layer for insertion must be an int.")
-        elif layer != 0 and layer != len(self._queue):
+        elif layer not in [0, len(self._queue)]:
             raise NotImplementedError(
                 f"You can only insert to the beginning or end of a {type(self)}, "
                 f"currently. You tried to insert to {layer}, but only 0 and "

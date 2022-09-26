@@ -127,11 +127,10 @@ def _process_pkg_path(
 
 
 def _parse_pkg_path(pkg_path: str) -> Tuple[str, Optional[str]]:
-    if "/" in pkg_path:
-        pkg_id, _, namespaced_asset = pkg_path.partition("/")
-        return pkg_id, namespaced_asset
-    else:
+    if "/" not in pkg_path:
         return pkg_path, None
+    pkg_id, _, namespaced_asset = pkg_path.partition("/")
+    return pkg_id, namespaced_asset
 
 
 def _parse_pkg_id(pkg_id: str) -> Tuple[str, Optional[str]]:

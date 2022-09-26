@@ -200,9 +200,7 @@ def make_path_relative(path: str) -> str:
             "root directory."
         )
 
-    if path[:2] != "./":
-        return f"./{path}"
-    return path
+    return f"./{path}" if path[:2] != "./" else path
 
 
 def source_inliner(
@@ -414,7 +412,7 @@ def _contract_type(
 
     if "compiler" in contract_type_data:
         compiler_info = contract_type_data.pop("compiler")
-        contract_type_ref = alias if alias else name
+        contract_type_ref = alias or name
         manifest_with_compilers = add_compilers_to_manifest(
             compiler_info, contract_type_ref, manifest
         )
@@ -596,10 +594,11 @@ def process_bytecode(link_refs: Dict[str, Any], bytecode: bytes) -> HexStr:
 
 @curry
 def replace_link_ref_in_bytecode(offset: int, length: int, bytecode: str) -> str:
-    new_bytes = (
-        bytecode[:offset] + "0" * length + bytecode[offset + length :]  # noqa: E203
+    return (
+        bytecode[:offset]
+        + "0" * length
+        + bytecode[offset + length :]  # noqa: E203
     )
-    return new_bytes
 
 
 # todo pull all bytecode linking/validating across py-ethpm into shared utils
@@ -739,15 +738,13 @@ def _deployment(
     if not is_BIP122_block_uri(block_uri):
         raise ManifestBuildingError(f"{block_uri} is not a valid BIP122 URI.")
 
-    if tx:
-        if not is_string(tx) and not is_hex(tx):
-            raise ManifestBuildingError(
-                f"Transaction hash: {tx} is not a valid hexstring"
-            )
+    if tx and not is_string(tx) and not is_hex(tx):
+        raise ManifestBuildingError(
+            f"Transaction hash: {tx} is not a valid hexstring"
+        )
 
-    if block:
-        if not is_string(block) and not is_hex(block):
-            raise ManifestBuildingError(f"Block hash: {block} is not a valid hexstring")
+    if block and not is_string(block) and not is_hex(block):
+        raise ManifestBuildingError(f"Block hash: {block} is not a valid hexstring")
     # todo: validate db, rb and compiler are properly formatted dicts
     deployment_data = _build_deployments_object(
         contract_type,

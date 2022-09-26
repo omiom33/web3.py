@@ -81,14 +81,14 @@ def test_deployment_implements_get_values(deployment):
 
 def test_deployment_implements_key_lookup(deployment):
     key = "SafeMathLib" in deployment
-    assert key is True
+    assert key
 
 
 def test_deployment_implements_key_lookup_with_nonexistent_key_raises_exception(
     deployment,
 ):
     key = "invalid" in deployment
-    assert key is False
+    assert not key
 
 
 @pytest.mark.parametrize("invalid_name", ("", "-abc", "A=bc", "X" * 257))

@@ -37,13 +37,7 @@ class PropertyCheckingFactory(type):
         super().__init__(name, bases, namespace)
 
     # __new__ must return a class instance
-    def __new__(
-        mcs,
-        name: str,
-        bases: Tuple[type],
-        namespace: Dict[str, Any],
-        normalizers: Optional[Dict[str, Any]] = None,
-    ) -> "PropertyCheckingFactory":
+    def __new__(cls, name: str, bases: Tuple[type], namespace: Dict[str, Any], normalizers: Optional[Dict[str, Any]] = None) -> "PropertyCheckingFactory":
         all_bases = set(concat(base.__mro__ for base in bases))
         all_keys = set(concat(base.__dict__.keys() for base in all_bases))
 
@@ -58,4 +52,4 @@ class PropertyCheckingFactory(type):
         else:
             processed_namespace = namespace
 
-        return super().__new__(mcs, name, bases, processed_namespace)
+        return super().__new__(cls, name, bases, processed_namespace)

@@ -104,7 +104,7 @@ def filter_by_name(name: str, contract_abi: ABI) -> List[Union[ABIFunction, ABIE
 
 
 def get_abi_input_types(abi: ABIFunction) -> List[str]:
-    if "inputs" not in abi and (abi["type"] == "fallback" or abi["type"] == "receive"):
+    if "inputs" not in abi and abi["type"] in ["fallback", "receive"]:
         return []
     else:
         return [collapse_if_tuple(cast(Dict[str, Any], arg)) for arg in abi["inputs"]]
@@ -118,16 +118,14 @@ def get_abi_output_types(abi: ABIFunction) -> List[str]:
 
 
 def get_receive_func_abi(contract_abi: ABI) -> ABIFunction:
-    receive_abis = filter_by_type("receive", contract_abi)
-    if receive_abis:
+    if receive_abis := filter_by_type("receive", contract_abi):
         return cast(ABIFunction, receive_abis[0])
     else:
         raise FallbackNotFound("No receive function was found in the contract ABI.")
 
 
 def get_fallback_func_abi(contract_abi: ABI) -> ABIFunction:
-    fallback_abis = filter_by_type("fallback", contract_abi)
-    if fallback_abis:
+    if fallback_abis := filter_by_type("fallback", contract_abi):
         return cast(ABIFunction, fallback_abis[0])
     else:
         raise FallbackNotFound("No fallback function was found in the contract ABI.")
@@ -242,7 +240,7 @@ class AcceptsHexStrEncoder(encoding.BaseEncoder):
                         self.invalidate_value(
                             raw_value, msg="hex string must be prefixed with 0x"
                         )
-                    elif raw_value[:2] != "0x":
+                    else:
                         warnings.warn(
                             "in v6 it will be invalid to pass a hex "
                             'string without the "0x" prefix',
@@ -337,13 +335,10 @@ class ExactLengthBytesEncoder(encoding.BaseEncoder):
         return value
 
     @parse_type_str("bytes")
-    def from_type_str(cls, abi_type: BasicType, registry: ABIRegistry) -> bytes:
+    def from_type_str(self, abi_type: BasicType, registry: ABIRegistry) -> bytes:
         # type ignored b/c kwargs are set in superclass init
         # Unexpected keyword argument "value_bit_size" for "__call__" of "BaseEncoder"
-        return cls(  # type: ignore
-            value_bit_size=abi_type.sub * 8,
-            data_byte_size=abi_type.sub,
-        )
+        return self(value_bit_size=abi_type.sub * 8, data_byte_size=abi_type.sub)
 
 
 class BytesDecoder(decoding.FixedByteSizeDecoder):
@@ -356,13 +351,10 @@ class BytesDecoder(decoding.FixedByteSizeDecoder):
         return data
 
     @parse_type_str("bytes")
-    def from_type_str(cls, abi_type: BasicType, registry: ABIRegistry) -> bytes:
+    def from_type_str(self, abi_type: BasicType, registry: ABIRegistry) -> bytes:
         # type ignored b/c kwargs are set in superclass init
         # Unexpected keyword argument "value_bit_size" for "__call__" of "BaseDecoder"
-        return cls(  # type: ignore
-            value_bit_size=abi_type.sub * 8,
-            data_byte_size=abi_type.sub,
-        )
+        return self(value_bit_size=abi_type.sub * 8, data_byte_size=abi_type.sub)
 
 
 class TextStringEncoder(encoding.TextStringEncoder):
@@ -445,17 +437,13 @@ def merge_args_and_kwargs(
     sorted_arg_names = tuple(arg_abi["name"] for arg_abi in function_abi["inputs"])
     args_as_kwargs = dict(zip(sorted_arg_names, args))
 
-    # Check for duplicate args
-    duplicate_args = kwarg_names.intersection(args_as_kwargs.keys())
-    if duplicate_args:
+    if duplicate_args := kwarg_names.intersection(args_as_kwargs.keys()):
         raise TypeError(
             f"{function_abi.get('name')}() got multiple values for argument(s) "
             f"'{', '.join(duplicate_args)}'"
         )
 
-    # Check for unknown args
-    unknown_args = kwarg_names.difference(sorted_arg_names)
-    if unknown_args:
+    if unknown_args := kwarg_names.difference(sorted_arg_names):
         if function_abi.get("name"):
             raise TypeError(
                 f"{function_abi.get('name')}() got unexpected keyword argument(s)"
@@ -466,18 +454,14 @@ def merge_args_and_kwargs(
             f" '{', '.join(unknown_args)}'"
         )
 
-    # Sort args according to their position in the ABI and unzip them from their
-    # names
-    sorted_args = tuple(
+    if sorted_args := tuple(
         zip(
             *sorted(
                 itertools.chain(kwargs.items(), args_as_kwargs.items()),
                 key=lambda kv: sorted_arg_names.index(kv[0]),
             )
         )
-    )
-
-    if sorted_args:
+    ):
         return sorted_args[1]
     else:
         return tuple()
@@ -575,7 +559,7 @@ def get_constructor_abi(contract_abi: ABI) -> ABIFunction:
     candidates = [abi for abi in contract_abi if abi["type"] == "constructor"]
     if len(candidates) == 1:
         return candidates[0]
-    elif len(candidates) == 0:
+    elif not candidates:
         return None
     elif len(candidates) > 1:
         raise ValueError("Found multiple constructors.")
@@ -600,8 +584,10 @@ STATIC_TYPES = list(
 )
 
 BASE_TYPE_REGEX = "|".join(
-    (_type + "(?![a-z0-9])" for _type in itertools.chain(STATIC_TYPES, DYNAMIC_TYPES))
+    f"{_type}(?![a-z0-9])"
+    for _type in itertools.chain(STATIC_TYPES, DYNAMIC_TYPES)
 )
+
 
 SUB_TYPE_REGEX = r"\[" "[0-9]*" r"\]"
 
@@ -656,9 +642,7 @@ def size_of_type(abi_type: TypeStr) -> int:
         return None
     if abi_type == "bool":
         return 8
-    if abi_type == "address":
-        return 160
-    return int(re.sub(r"\D", "", abi_type))
+    return 160 if abi_type == "address" else int(re.sub(r"\D", "", abi_type))
 
 
 END_BRACKETS_OF_ARRAY_TYPE_REGEX = r"\[[^]]*\]$"
@@ -675,13 +659,11 @@ def length_of_array_type(abi_type: TypeStr) -> int:
     if not is_array_type(abi_type):
         raise ValueError(f"Cannot parse length of nonarray abi-type: {abi_type}")
 
-    inner_brackets = (
-        re.search(END_BRACKETS_OF_ARRAY_TYPE_REGEX, abi_type).group(0).strip("[]")
-    )
-    if not inner_brackets:
-        return None
-    else:
-        return int(inner_brackets)
+    inner_brackets = re.search(END_BRACKETS_OF_ARRAY_TYPE_REGEX, abi_type)[
+        0
+    ].strip("[]")
+
+    return int(inner_brackets) if inner_brackets else None
 
 
 ARRAY_REGEX = ("^" "[a-zA-Z0-9_]+" "({sub_type})+" "$").format(sub_type=SUB_TYPE_REGEX)
@@ -717,14 +699,13 @@ def normalize_event_input_types(
 
 
 def abi_to_signature(abi: Union[ABIFunction, ABIEvent]) -> str:
-    function_signature = "{fn_name}({fn_input_types})".format(
+    return "{fn_name}({fn_input_types})".format(
         fn_name=abi["name"],
         fn_input_types=",".join(
             collapse_if_tuple(dict(arg))
             for arg in normalize_event_input_types(abi.get("inputs", []))
         ),
     )
-    return function_signature
 
 
 ########################################################
@@ -868,10 +849,7 @@ def abi_sub_tree(
 
 
 def strip_abi_type(elements: Any) -> Any:
-    if isinstance(elements, ABITypedData):
-        return elements.data
-    else:
-        return elements
+    return elements.data if isinstance(elements, ABITypedData) else elements
 
 
 def build_default_registry() -> ABIRegistry:

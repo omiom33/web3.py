@@ -79,16 +79,10 @@ def construct_block_data_middleware():
             elif block_id == "earliest":
                 return blocks[0]
             elif is_integer(block_id):
-                if block_id <= head_block_number:
-                    return blocks[block_id]
-                else:
-                    return None
+                return blocks[block_id] if block_id <= head_block_number else None
             elif is_hex(block_id):
                 block_id = hex_to_integer(block_id)
-                if block_id <= head_block_number:
-                    return blocks[block_id]
-                else:
-                    return None
+                return blocks[block_id] if block_id <= head_block_number else None
             else:
                 raise TypeError("Invalid type for block_id")
 
@@ -100,10 +94,7 @@ def construct_block_data_middleware():
             blocks_by_hash = {block["hash"]: block for block in blocks}
             try:
                 block = blocks_by_hash[block_hash]
-                if block["number"] <= head_block_number:
-                    return block
-                else:
-                    return None
+                return block if block["number"] <= head_block_number else None
             except KeyError:
                 return None
 

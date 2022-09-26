@@ -93,14 +93,9 @@ SIMPLE_CACHE_RPC_WHITELIST = cast(
 
 
 def _should_cache(method: RPCEndpoint, params: Any, response: RPCResponse) -> bool:
-    if "error" in response:
+    if "error" in response or "result" not in response:
         return False
-    elif "result" not in response:
-        return False
-
-    if response["result"] is None:
-        return False
-    return True
+    return response["result"] is not None
 
 
 def construct_simple_cache_middleware(

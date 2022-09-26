@@ -11,9 +11,11 @@ def middleware_factory():
             key = next(unique_ids)
         key = str(key)
 
+
+
         class Wrapper:
             def __repr__(self):
-                return "middleware-" + key
+                return f"middleware-{key}"
 
             def __call__(self, make_request, w3):
                 def middleware_fn(method, params):
@@ -24,6 +26,7 @@ def middleware_factory():
                     return response
 
                 return middleware_fn
+
 
         return Wrapper()
 

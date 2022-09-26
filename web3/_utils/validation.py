@@ -65,8 +65,9 @@ def _prepare_selector_collision_msg(duplicates: Dict[HexStr, ABIFunction]) -> st
     dup_sel = valmap(apply_formatter_to_array(abi_to_signature), duplicates)
     joined_funcs = valmap(lambda funcs: ", ".join(funcs), dup_sel)
     func_sel_msg_list = [
-        funcs + " have selector " + sel for sel, funcs in joined_funcs.items()
+        f"{funcs} have selector {sel}" for sel, funcs in joined_funcs.items()
     ]
+
     return " and\n".join(func_sel_msg_list)
 
 
@@ -82,8 +83,7 @@ def validate_abi(abi: ABI) -> None:
 
     functions = filter_by_type("function", abi)
     selectors = groupby(compose(encode_hex, function_abi_to_4byte_selector), functions)
-    duplicates = valfilter(lambda funcs: len(funcs) > 1, selectors)
-    if duplicates:
+    if duplicates := valfilter(lambda funcs: len(funcs) > 1, selectors):
         raise ValueError(
             "Abi contains functions with colliding selectors. "
             f"Functions {_prepare_selector_collision_msg(duplicates)}"

@@ -162,12 +162,12 @@ def get_buffered_gas_estimate(
 
 
 def get_required_transaction(w3: "Web3", transaction_hash: _Hash32) -> TxData:
-    current_transaction = w3.eth.get_transaction(transaction_hash)
-    if not current_transaction:
+    if current_transaction := w3.eth.get_transaction(transaction_hash):
+        return current_transaction
+    else:
         raise ValueError(
             f"Supplied transaction with hash {transaction_hash!r} does not exist"
         )
-    return current_transaction
 
 
 def extract_valid_transaction_params(transaction_params: TxData) -> TxParams:
@@ -186,21 +186,24 @@ def extract_valid_transaction_params(transaction_params: TxData) -> TxParams:
     # value (maxFeePerGas). If we don't, the modified transaction will
     # include a gasPrice as well as dynamic fee values in
     # the eth_sendTransaction call and cause a conflict.
-    if all_in_dict(DYNAMIC_FEE_TXN_PARAMS, extracted_params):
-        if extracted_params["gasPrice"] == extracted_params["maxFeePerGas"]:
-            extracted_params.pop("gasPrice")
+    if (
+        all_in_dict(DYNAMIC_FEE_TXN_PARAMS, extracted_params)
+        and extracted_params["gasPrice"] == extracted_params["maxFeePerGas"]
+    ):
+        extracted_params.pop("gasPrice")
 
     if extracted_params.get("data") is not None:
-        if transaction_params.get("input") is not None:
-            if extracted_params["data"] != transaction_params["input"]:
-                msg = 'failure to handle this transaction due to both "input: {}" and'
-                msg += ' "data: {}" are populated. You need to resolve this conflict.'
-                err_vals = (transaction_params["input"], extracted_params["data"])
-                raise AttributeError(msg.format(*err_vals))
-            else:
-                return extracted_params
-        else:
+        if transaction_params.get("input") is None:
             return extracted_params
+        if extracted_params["data"] == transaction_params["input"]:
+            return extracted_params
+        msg = (
+            'failure to handle this transaction due to both "input: {}" and'
+            + ' "data: {}" are populated. You need to resolve this conflict.'
+        )
+
+        err_vals = (transaction_params["input"], extracted_params["data"])
+        raise AttributeError(msg.format(*err_vals))
     elif extracted_params.get("data") is None:
         if transaction_params.get("input") is not None:
             return assoc(extracted_params, "data", transaction_params["input"])

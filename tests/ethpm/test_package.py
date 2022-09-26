@@ -107,8 +107,8 @@ def test_cached_properties(
     first_build_dependencies_package2 = package2.build_dependencies.items()
     second_build_dependencies_package2 = package2.build_dependencies.items()
     assert first_build_dependencies_package2 == first_build_dependencies_package2
-    assert not first_build_dependencies_package1 == first_build_dependencies_package2
-    assert not second_build_dependencies_package1 == second_build_dependencies_package2
+    assert first_build_dependencies_package1 != first_build_dependencies_package2
+    assert second_build_dependencies_package1 != second_build_dependencies_package2
     package1 = safe_math_lib_package
     first_deployments_package1 = package1.deployments
     second_deployments_package1 = package1.deployments
@@ -117,5 +117,5 @@ def test_cached_properties(
     first_deployments_package2 = package2.deployments
     second_deployments_package2 = package2.deployments
     assert first_deployments_package2 == second_deployments_package2
-    assert not first_deployments_package1 == first_deployments_package2
-    assert not second_deployments_package1 == second_deployments_package2
+    assert first_deployments_package1 != first_deployments_package2
+    assert second_deployments_package1 != second_deployments_package2

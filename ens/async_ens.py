@@ -100,7 +100,7 @@ class AsyncENS(BaseENS):
         """
         self.w3 = init_async_web3(provider, middlewares)
 
-        ens_addr = addr if addr else ENS_MAINNET_ADDR
+        ens_addr = addr or ENS_MAINNET_ADDR
         self.ens = self.w3.eth.contract(abi=abis.ENS, address=ens_addr)
         self._resolver_contract = self.w3.eth.contract(abi=abis.RESOLVER)
         self._reverse_resolver_contract = self.w3.eth.contract(
@@ -559,6 +559,9 @@ async def _async_resolver_supports_interface(
     resolver: "AsyncContract",
     interface_id: HexStr,
 ) -> bool:
-    if not any("supportsInterface" in repr(func) for func in resolver.all_functions()):
+    if all(
+        "supportsInterface" not in repr(func)
+        for func in resolver.all_functions()
+    ):
         return False
     return await resolver.caller.supportsInterface(interface_id)

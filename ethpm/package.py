@@ -207,15 +207,14 @@ class Package(object):
         ``file_path`` arg must be a ``pathlib.Path`` instance.
         A valid ``Web3`` instance is required to instantiate a ``Package``.
         """
-        if isinstance(file_path, Path):
-            raw_manifest = file_path.read_text()
-            validate_raw_manifest_format(raw_manifest)
-            manifest = json.loads(raw_manifest)
-        else:
+        if not isinstance(file_path, Path):
             raise TypeError(
                 "The Package.from_file method expects a pathlib.Path instance."
                 f"Got {type(file_path)} instead."
             )
+        raw_manifest = file_path.read_text()
+        validate_raw_manifest_format(raw_manifest)
+        manifest = json.loads(raw_manifest)
         return cls(manifest, w3, file_path.as_uri())
 
     @classmethod
@@ -286,8 +285,7 @@ class Package(object):
 
         validate_minimal_contract_factory_data(contract_data)
         contract_kwargs = generate_contract_factory_kwargs(contract_data)
-        contract_factory = self.w3.eth.contract(**contract_kwargs)
-        return contract_factory
+        return self.w3.eth.contract(**contract_kwargs)
 
     def get_contract_instance(self, name: ContractName, address: Address) -> Contract:
         """
@@ -308,10 +306,9 @@ class Package(object):
         contract_kwargs = generate_contract_factory_kwargs(
             self.manifest["contractTypes"][name]
         )
-        contract_instance = self.w3.eth.contract(address=address, **contract_kwargs)
         # TODO: type ignore may be able to be removed after
         # more of AsyncContract is finished
-        return contract_instance  # type: ignore
+        return self.w3.eth.contract(address=address, **contract_kwargs)
 
     #
     # Build Dependencies
@@ -372,8 +369,7 @@ class Package(object):
         deployments = self.manifest["deployments"][matching_uri]
         all_contract_instances = self._get_all_contract_instances(deployments)
         validate_deployments_tx_receipt(deployments, self.w3, allow_missing_data=True)
-        linked_deployments = get_linked_deployments(deployments)
-        if linked_deployments:
+        if linked_deployments := get_linked_deployments(deployments):
             for deployment_data in linked_deployments.values():
                 on_chain_bytecode = self.w3.eth.get_code(deployment_data["address"])
                 unresolved_linked_refs = normalize_linked_references(

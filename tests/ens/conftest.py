@@ -56,10 +56,7 @@ def bytes32(val):
         result = Web3.toBytes(val)
     else:
         raise TypeError(f"{val!r} could not be converted to bytes")
-    if len(result) < 32:
-        return result.rjust(32, b"\0")
-    else:
-        return result
+    return result.rjust(32, b"\0") if len(result) < 32 else result
 
 
 def deploy(w3, Factory, from_address, args=None):
@@ -357,10 +354,9 @@ def TEST_ADDRESS(address_conversion_func):
 @pytest_asyncio.fixture(scope="session")
 def async_w3():
     provider = AsyncEthereumTesterProvider()
-    _async_w3 = Web3(
+    return Web3(
         provider, modules={"eth": [AsyncEth]}, middlewares=provider.middlewares
     )
-    return _async_w3
 
 
 async def async_deploy(async_w3, Factory, from_address, args=None):

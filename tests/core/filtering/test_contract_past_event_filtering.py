@@ -17,11 +17,7 @@ def test_on_filter_using_get_all_entries_interface(
     api_style,
     create_filter,
 ):
-    if call_as_instance:
-        contract = emitter
-    else:
-        contract = Emitter
-
+    contract = emitter if call_as_instance else Emitter
     if api_style == "build_filter":
         builder = contract.events.LogNoArguments.build_filter()
         builder.fromBlock = "latest"
@@ -61,11 +57,7 @@ def test_get_all_entries_returned_block_data(
     txn_hash = emitter.functions.logNoArgs(emitter_event_ids.LogNoArguments).transact()
     txn_receipt = wait_for_transaction(w3, txn_hash)
 
-    if call_as_instance:
-        contract = emitter
-    else:
-        contract = Emitter
-
+    contract = emitter if call_as_instance else Emitter
     if api_style == "build_filter":
         builder = contract.events.LogNoArguments.build_filter()
         builder.fromBlock = txn_receipt["blockNumber"]

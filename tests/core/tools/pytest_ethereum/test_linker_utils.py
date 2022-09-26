@@ -70,7 +70,7 @@ def test_insert_deployment(escrow_deployer):
     }
     w3.testing.mine(1)
     init_block_uri = create_latest_block_uri(w3, 0)
-    alt_block_uri = init_block_uri[:15] + "yxz123" + init_block_uri[21:]
+    alt_block_uri = f"{init_block_uri[:15]}yxz123{init_block_uri[21:]}"
     init_block_deployment_data = {
         init_block_uri: {"Other": {"x": "x"}, "Escrow": init_deployment_data},
         alt_block_uri: {"alt": {"x": "x"}},

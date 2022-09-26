@@ -70,11 +70,7 @@ def apply_error_formatters(
     error_formatters: Callable[..., Any],
     response: RPCResponse,
 ) -> RPCResponse:
-    if error_formatters:
-        formatted_resp = pipe(response, error_formatters)
-        return formatted_resp
-    else:
-        return response
+    return pipe(response, error_formatters) if error_formatters else response
 
 
 def apply_null_result_formatters(
@@ -83,8 +79,7 @@ def apply_null_result_formatters(
     params: Optional[Any] = None,
 ) -> RPCResponse:
     if null_result_formatters:
-        formatted_resp = pipe(params, null_result_formatters)
-        return formatted_resp
+        return pipe(params, null_result_formatters)
     else:
         return response
 
@@ -106,10 +101,7 @@ class RequestManager:
 
         self.middleware_onion: MiddlewareOnion = NamedElementOnion(middlewares)
 
-        if provider is None:
-            self.provider = AutoProvider()
-        else:
-            self.provider = provider
+        self.provider = AutoProvider() if provider is None else provider
 
     w3: "Web3" = None
     _provider = None

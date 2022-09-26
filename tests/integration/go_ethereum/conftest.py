@@ -95,8 +95,7 @@ def geth_fixture_data(datadir):
 
 @pytest.fixture(scope="module")
 def genesis_file(datadir):
-    genesis_file_path = os.path.join(datadir, "genesis.json")
-    return genesis_file_path
+    return os.path.join(datadir, "genesis.json")
 
 
 @pytest.fixture(scope="module")

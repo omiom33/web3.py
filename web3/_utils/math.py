@@ -31,9 +31,7 @@ def percentile(
 
     if index % 1 == 0:
         return sorted_values[int(index)]
-    else:
-        fractional = index % 1
-        integer = int(index - fractional)
-        lower = sorted_values[integer]
-        higher = sorted_values[integer + 1]
-        return lower + fractional * (higher - lower)
+    fractional = index % 1
+    integer = int(index - fractional)
+    lower = sorted_values[integer]
+    return lower + fractional * (sorted_values[integer + 1] - lower)

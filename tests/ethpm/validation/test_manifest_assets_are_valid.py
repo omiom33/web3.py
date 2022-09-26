@@ -19,13 +19,15 @@ def get_all_manifest_paths():
     all_use_case_json = set(ASSETS_DIR.glob(SOURCES_GLOB)) - set(
         (ASSETS_DIR / "spec").glob(SOURCES_GLOB)
     )
-    all_manifests = [json for json in all_use_case_json if json.name == "v3.json"]
-    if not all_manifests:
+    if all_manifests := [
+        json for json in all_use_case_json if json.name == "v3.json"
+    ]:
+        return all_manifests
+    else:
         raise InsufficientAssetsError(
             "Error importing manifests for validation, "
             "no v3 manifests found in `ethpm/ethpm-spec` submodule"
         )
-    return all_manifests
 
 
 @pytest.fixture(params=get_all_manifest_paths())

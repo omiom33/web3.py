@@ -133,8 +133,7 @@ def construct_event_topic_set(
         for arg, arg_options in zipped_abi_and_args
     ]
 
-    topics = list(normalize_topic_list([event_topic] + encoded_args))  # type: ignore
-    return topics
+    return list(normalize_topic_list([event_topic] + encoded_args))
 
 
 def construct_event_data_set(
@@ -175,11 +174,12 @@ def construct_event_data_set(
         for arg, arg_options in zipped_abi_and_args
     ]
 
-    data = [
-        list(permutation) if any(value is not None for value in permutation) else []
+    return [
+        list(permutation)
+        if any(value is not None for value in permutation)
+        else []
         for permutation in itertools.product(*encoded_args)
     ]
-    return data
 
 
 def is_dynamic_sized_type(type_str: TypeStr) -> bool:
@@ -237,10 +237,7 @@ def get_event_data(
     log_data_types = get_event_abi_types_for_decoding(log_data_normalized_inputs)
     log_data_names = get_abi_input_names(ABIEvent({"inputs": log_data_abi}))
 
-    # sanity check that there are not name intersections between the topic
-    # names and the data argument names.
-    duplicate_names = set(log_topic_names).intersection(log_data_names)
-    if duplicate_names:
+    if duplicate_names := set(log_topic_names).intersection(log_data_names):
         raise InvalidEventABI(
             "The following argument names are duplicated "
             f"between event inputs: '{', '.join(duplicate_names)}'"
@@ -302,9 +299,7 @@ normalize_topic_list = compose(
 
 
 def is_indexed(arg: Any) -> bool:
-    if isinstance(arg, TopicArgumentFilter) is True:
-        return True
-    return False
+    return isinstance(arg, TopicArgumentFilter)
 
 
 is_not_indexed = complement(is_indexed)
@@ -432,7 +427,7 @@ def initialize_event_topics(event_abi: ABIEvent) -> Union[bytes, List[Any]]:
         # https://github.com/python/mypy/issues/4976
         return event_abi_to_log_topic(event_abi)  # type: ignore
     else:
-        return list()
+        return []
 
 
 @to_dict
@@ -508,10 +503,7 @@ class TopicArgumentFilter(BaseArgumentFilter):
     # type ignore b/c conflict with BaseArgumentFilter.match_values type
     @property
     def match_values(self) -> Optional[Tuple[HexStr, ...]]:  # type: ignore
-        if self._match_values is not None:
-            return self._get_match_values()
-        else:
-            return None
+        return self._get_match_values() if self._match_values is not None else None
 
     def _encode(self, value: Any) -> HexStr:
         if is_dynamic_sized_type(self.arg_type):
@@ -527,5 +519,5 @@ class EventLogErrorFlags(Enum):
     Warn = "warn"
 
     @classmethod
-    def flag_options(self) -> List[str]:
+    def flag_options(cls) -> List[str]:
         return [key.upper() for key in self.__members__.keys()]

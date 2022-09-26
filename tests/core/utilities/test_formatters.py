@@ -11,10 +11,7 @@ from web3._utils.formatters import (
 
 
 def square_int(x):
-    if isinstance(x, int):
-        return x * x
-    else:
-        return x
+    return x * x if isinstance(x, int) else x
 
 
 @pytest.mark.parametrize("non_collection", [1, "abc", "def", True, None])

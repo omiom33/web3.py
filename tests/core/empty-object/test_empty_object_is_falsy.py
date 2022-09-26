@@ -4,5 +4,5 @@ from web3._utils.empty import (
 
 
 def test_empty_object_is_falsy():
-    assert bool(empty) is False
+    assert not bool(empty)
     assert not empty

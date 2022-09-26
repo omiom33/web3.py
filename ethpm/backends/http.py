@@ -100,9 +100,4 @@ def is_valid_github_uri(uri: URI, expected_path_terms: Tuple[str, ...]) -> bool:
     if any(term for term in expected_path_terms if term not in path):
         return False
 
-    if scheme != "https":
-        return False
-
-    if authority != GITHUB_API_AUTHORITY:
-        return False
-    return True
+    return False if scheme != "https" else authority == GITHUB_API_AUTHORITY

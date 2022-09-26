@@ -137,10 +137,7 @@ def test_first_owner_upchain_identify(ens):
     addr = "0x5B2063246F2191f18F2675ceDB8b28102e957458"
 
     def getowner(name):
-        if name == "cdefghi.eth":
-            return addr
-        else:
-            return None
+        return addr if name == "cdefghi.eth" else None
 
     with patch.object(ens, "owner", side_effect=getowner):
         assert ens._first_owner("abcdefg.bcdefgh.cdefghi.eth") == (

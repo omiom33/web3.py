@@ -114,8 +114,7 @@ def get_response_from_get_request(
 ) -> requests.Response:
     kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
     session = cache_and_return_session(endpoint_uri)
-    response = session.get(endpoint_uri, *args, **kwargs)
-    return response
+    return session.get(endpoint_uri, *args, **kwargs)
 
 
 def get_response_from_post_request(
@@ -123,8 +122,7 @@ def get_response_from_post_request(
 ) -> requests.Response:
     kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
     session = cache_and_return_session(endpoint_uri)
-    response = session.post(endpoint_uri, *args, **kwargs)
-    return response
+    return session.post(endpoint_uri, *args, **kwargs)
 
 
 def make_post_request(
