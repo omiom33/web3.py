@@ -181,16 +181,15 @@ def _compute_gas_price(
         gas_window_size = left.gas_price - right.gas_price
         gas_price = int(math.ceil(right.gas_price + gas_window_size * position))
         return Wei(gas_price)
-    else:
-        # The initial `if/else` clause in this function handles the case where
-        # the `desired_probability` is either above or below the min/max
-        # probability found in the `probabilities`.
-        #
-        # With these two cases handled, the only way this code block should be
-        # reachable would be if the `probabilities` were not sorted correctly.
-        # Otherwise, the `desired_probability` **must** fall between two of the
-        # values in the `probabilities``.
-        raise Exception("Invariant")
+    # The initial `if/else` clause in this function handles the case where
+    # the `desired_probability` is either above or below the min/max
+    # probability found in the `probabilities`.
+    #
+    # With these two cases handled, the only way this code block should be
+    # reachable would be if the `probabilities` were not sorted correctly.
+    # Otherwise, the `desired_probability` **must** fall between two of the
+    # values in the `probabilities``.
+    raise Exception("Invariant")
 
 
 @curry

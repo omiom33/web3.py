@@ -33,20 +33,17 @@ from web3.types import (  # noqa: F401
 
 @pytest.fixture(scope="module")
 def eth_tester():
-    _eth_tester = EthereumTester()
-    return _eth_tester
+    return EthereumTester()
 
 
 @pytest.fixture(scope="module")
 def eth_tester_provider(eth_tester):
-    provider = EthereumTesterProvider(eth_tester)
-    return provider
+    return EthereumTesterProvider(eth_tester)
 
 
 @pytest.fixture(scope="module")
 def w3(eth_tester_provider):
-    _w3 = Web3(eth_tester_provider)
-    return _w3
+    return Web3(eth_tester_provider)
 
 
 #
@@ -54,10 +51,9 @@ def w3(eth_tester_provider):
 #
 @pytest.fixture(scope="module")
 def math_contract_deploy_txn_hash(w3, math_contract_factory):
-    deploy_txn_hash = math_contract_factory.constructor().transact(
+    return math_contract_factory.constructor().transact(
         {"from": w3.eth.coinbase}
     )
-    return deploy_txn_hash
 
 
 @pytest.fixture(scope="module")
@@ -81,10 +77,9 @@ def math_contract_address(math_contract, address_conversion_func):
 
 @pytest.fixture(scope="module")
 def emitter_contract_deploy_txn_hash(w3, emitter_contract_factory):
-    deploy_txn_hash = emitter_contract_factory.constructor().transact(
+    return emitter_contract_factory.constructor().transact(
         {"from": w3.eth.coinbase}
     )
-    return deploy_txn_hash
 
 
 @pytest.fixture(scope="module")
@@ -123,8 +118,7 @@ def block_with_txn(w3):
         }
     )
     txn = w3.eth.get_transaction(txn_hash)
-    block = w3.eth.get_block(txn["blockNumber"])
-    return block
+    return w3.eth.get_block(txn["blockNumber"])
 
 
 @pytest.fixture(scope="module")
@@ -144,8 +138,7 @@ def block_with_txn_with_log(w3, emitter_contract):
         }
     )
     txn = w3.eth.get_transaction(txn_hash)
-    block = w3.eth.get_block(txn["blockNumber"])
-    return block
+    return w3.eth.get_block(txn["blockNumber"])
 
 
 @pytest.fixture(scope="module")
@@ -158,10 +151,9 @@ def txn_hash_with_log(block_with_txn_with_log):
 #
 @pytest.fixture(scope="module")
 def revert_contract_deploy_txn_hash(w3, revert_contract_factory):
-    deploy_txn_hash = revert_contract_factory.constructor().transact(
+    return revert_contract_factory.constructor().transact(
         {"from": w3.eth.coinbase}
     )
-    return deploy_txn_hash
 
 
 @pytest.fixture(scope="module")
@@ -419,9 +411,7 @@ class TestEthereumTesterEthModule(EthModuleTest):
                 w3, math_contract, unlocked_account
             )
         except AssertionError as err:
-            if str(err) == "pending call result was 0 instead of 1":
-                pass
-            else:
+            if str(err) != "pending call result was 0 instead of 1":
                 raise err
         else:
             raise AssertionError(

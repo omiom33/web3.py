@@ -66,12 +66,9 @@ def validate_linked_references(
         end_of_bytes = offset_value + dep_length
         # Ignore b/c whitespace around ':' conflict b/w black & flake8
         actual_bytes = bytecode[offset_value:end_of_bytes]  # noqa: E203
-        if actual_bytes != values[idx]:
+        if actual_bytes != value:
             raise EthPMValidationError(
-                "Error validating linked reference. "
-                f"Offset: {offset} "
-                f"Value: {values[idx]} "
-                f"Bytecode: {bytecode!r} ."
+                f"Error validating linked reference. Offset: {offset} Value: {value} Bytecode: {bytecode!r} ."
             )
 
 
@@ -104,7 +101,7 @@ def validate_deployments_tx_receipt(
             # tx_address will be None if contract created via contract factory
             tx_address = tx_receipt["contractAddress"]
 
-            if tx_address is None and allow_missing_data is False:
+            if tx_address is None and not allow_missing_data:
                 raise EthPMValidationError(
                     "No contract address found in tx receipt. Unable to verify "
                     "address found in tx receipt matches address in manifest's "
@@ -129,14 +126,14 @@ def validate_deployments_tx_receipt(
                         "Does not match block found on "
                         f"tx_receipt: {tx_receipt['blockHash']!r}."
                     )
-            elif allow_missing_data is False:
+            elif not allow_missing_data:
                 raise EthPMValidationError(
                     "No block hash found in deployment data. "
                     "Unable to verify block hash on tx receipt. "
                     "If this validation is not necessary, please enable "
                     "`allow_missing_data` arg."
                 )
-        elif allow_missing_data is False:
+        elif not allow_missing_data:
             raise EthPMValidationError(
                 "No transaction hash found in deployment data. "
                 "Unable to validate tx_receipt. "

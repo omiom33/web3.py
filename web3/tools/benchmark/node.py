@@ -78,7 +78,7 @@ class GethBenchmarkFixture:
         return (
             self.geth_binary,
             "--datadir",
-            str(datadir),
+            datadir,
             "--nodiscover",
             "--fakepow",
             "--http",
@@ -96,10 +96,11 @@ class GethBenchmarkFixture:
         init_datadir_command = (
             self.geth_binary,
             "--datadir",
-            str(datadir),
+            datadir,
             "init",
-            str(genesis_file),
+            genesis_file,
         )
+
         check_output(
             init_datadir_command,
             stdin=PIPE,

@@ -42,8 +42,7 @@ def is_ens_name(value: Any) -> bool:
 
 
 def validate_name_has_address(ens: ENS, name: str) -> ChecksumAddress:
-    addr = ens.address(name)
-    if addr:
+    if addr := ens.address(name):
         return addr
     else:
         raise NameNotFound(f"Could not find address for name {name!r}")

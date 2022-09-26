@@ -134,7 +134,7 @@ def find_matching_fn_abi(
     kwargs: Optional[Any] = None,
 ) -> ABIFunction:
     args = args or tuple()
-    kwargs = kwargs or dict()
+    kwargs = kwargs or {}
     num_arguments = len(args) + len(kwargs)
 
     if fn_identifier is FallbackFn:
@@ -154,43 +154,42 @@ def find_matching_fn_abi(
 
     if len(function_candidates) == 1:
         return function_candidates[0]
-    else:
-        matching_identifiers = name_filter(abi)
-        matching_function_signatures = [
-            abi_to_signature(func) for func in matching_identifiers
-        ]
+    matching_identifiers = name_filter(abi)
+    matching_function_signatures = [
+        abi_to_signature(func) for func in matching_identifiers
+    ]
 
-        arg_count_matches = len(arg_count_filter(matching_identifiers))
-        encoding_matches = len(encoding_filter(matching_identifiers))
+    arg_count_matches = len(arg_count_filter(matching_identifiers))
+    encoding_matches = len(encoding_filter(matching_identifiers))
 
-        if arg_count_matches == 0:
-            diagnosis = (
-                "\nFunction invocation failed due to improper number of arguments."
-            )
-        elif encoding_matches == 0:
-            diagnosis = (
-                "\nFunction invocation failed due to no matching argument types."
-            )
-        elif encoding_matches > 1:
-            diagnosis = (
-                "\nAmbiguous argument encoding. "
-                "Provided arguments can be encoded to multiple functions "
-                "matching this call."
-            )
-
-        collapsed_args = extract_argument_types(args)
-        collapsed_kwargs = dict(
-            {(k, extract_argument_types([v])) for k, v in kwargs.items()}
+    if arg_count_matches == 0:
+        diagnosis = (
+            "\nFunction invocation failed due to improper number of arguments."
         )
-        message = (
-            f"\nCould not identify the intended function with name `{fn_identifier}`, "
-            f"positional arguments with type(s) `{collapsed_args}` and "
-            f"keyword arguments with type(s) `{collapsed_kwargs}`."
-            f"\nFound {len(matching_identifiers)} function(s) with "
-            f"the name `{fn_identifier}`: {matching_function_signatures}{diagnosis}"
+    elif encoding_matches == 0:
+        diagnosis = (
+            "\nFunction invocation failed due to no matching argument types."
+        )
+    elif encoding_matches > 1:
+        diagnosis = (
+            "\nAmbiguous argument encoding. "
+            "Provided arguments can be encoded to multiple functions "
+            "matching this call."
         )
 
-        raise ValidationError(message)
+    collapsed_args = extract_argument_types(args)
+    collapsed_kwargs = dict(
+        {(k, extract_argument_types([v])) for k, v in kwargs.items()}
+    )
+    message = (
+        f"\nCould not identify the intended function with name `{fn_identifier}`, "
+        f"positional arguments with type(s) `{collapsed_args}` and "
+        f"keyword arguments with type(s) `{collapsed_kwargs}`."
+        f"\nFound {len(matching_identifiers)} function(s) with "
+        f"the name `{fn_identifier}`: {matching_function_signatures}{diagnosis}"
+    )
+
+    raise ValidationError(message)
 
 
 def encode_abi(
@@ -357,14 +356,17 @@ def validate_payable(transaction: TxParams, abi: ABIFunction) -> None:
     """Raise ValidationError if non-zero ether
     is sent to a non-payable function.
     """
-    if "value" in transaction:
-        if to_integer_if_hex(transaction["value"]) != 0:
-            if "payable" in abi and not abi["payable"]:
-                raise ValidationError(
-                    "Sending non-zero ether to a contract function "
-                    "with payable=False. Please ensure that "
-                    "transaction's value is 0."
-                )
+    if (
+        "value" in transaction
+        and to_integer_if_hex(transaction["value"]) != 0
+        and "payable" in abi
+        and not abi["payable"]
+    ):
+        raise ValidationError(
+            "Sending non-zero ether to a contract function "
+            "with payable=False. Please ensure that "
+            "transaction's value is 0."
+        )
 
 
 def _get_argument_readable_type(arg: Any) -> str:

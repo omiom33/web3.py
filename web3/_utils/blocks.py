@@ -37,9 +37,11 @@ def is_predefined_block_number(value: Any) -> bool:
 
 
 def is_hex_encoded_block_hash(value: Any) -> bool:
-    if not is_string(value):
-        return False
-    return len(remove_0x_prefix(value)) == 64 and is_hex(value)
+    return (
+        len(remove_0x_prefix(value)) == 64 and is_hex(value)
+        if is_string(value)
+        else False
+    )
 
 
 def is_hex_encoded_block_number(value: Any) -> bool:

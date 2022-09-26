@@ -66,12 +66,10 @@ def get_resolvable_backends_for_uri(
         for backend_class in ALL_URI_BACKENDS:
             if backend_class is default_ipfs:
                 continue
-            # type ignored because of conflict with instantiating BaseURIBackend
-            else:
-                try:
-                    if backend_class().can_resolve_uri(uri):  # type: ignore
-                        yield backend_class
-                except ConnectionError:
-                    logger.debug(
-                        "No local IPFS node available on port 5001.", exc_info=True
-                    )
+            try:
+                if backend_class().can_resolve_uri(uri):  # type: ignore
+                    yield backend_class
+            except ConnectionError:
+                logger.debug(
+                    "No local IPFS node available on port 5001.", exc_info=True
+                )

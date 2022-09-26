@@ -46,9 +46,11 @@ def mine_pending_block(w3: "Web3") -> None:
 
     w3.geth.miner.start()  # type: ignore
     start = time.time()
-    while time.time() < start + timeout:
-        if len(w3.eth.get_block("pending")["transactions"]) == 0:
-            break
+    while (
+        time.time() < start + timeout
+        and len(w3.eth.get_block("pending")["transactions"]) != 0
+    ):
+        pass
     w3.geth.miner.stop()  # type: ignore
 
 

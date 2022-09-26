@@ -100,7 +100,7 @@ class ENS(BaseENS):
         """
         self.w3 = init_web3(provider, middlewares)
 
-        ens_addr = addr if addr else ENS_MAINNET_ADDR
+        ens_addr = addr or ENS_MAINNET_ADDR
         self.ens = self.w3.eth.contract(abi=abis.ENS, address=ens_addr)
         self._resolver_contract = self.w3.eth.contract(abi=abis.RESOLVER)
         self._reverse_resolver_contract = self.w3.eth.contract(
@@ -338,8 +338,7 @@ class ENS(BaseENS):
         node = raw_name_to_hash(name)
         normal_name = normalize_name(name)
 
-        r = self.resolver(normal_name)
-        if r:
+        if r := self.resolver(normal_name):
             if _resolver_supports_interface(r, GET_TEXT_INTERFACE_ID):
                 return r.caller.text(node, key)
             else:
@@ -382,8 +381,7 @@ class ENS(BaseENS):
 
         transaction_dict = merge({"from": owner}, transact)
 
-        r = self.resolver(normal_name)
-        if r:
+        if r := self.resolver(normal_name):
             if _resolver_supports_interface(r, GET_TEXT_INTERFACE_ID):
                 return r.functions.setText(node, key, value).transact(transaction_dict)
             else:
@@ -536,6 +534,9 @@ class ENS(BaseENS):
 
 
 def _resolver_supports_interface(resolver: "Contract", interface_id: HexStr) -> bool:
-    if not any("supportsInterface" in repr(func) for func in resolver.all_functions()):
+    if all(
+        "supportsInterface" not in repr(func)
+        for func in resolver.all_functions()
+    ):
         return False
     return resolver.caller.supportsInterface(interface_id)

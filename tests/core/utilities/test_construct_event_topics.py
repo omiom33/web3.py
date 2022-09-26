@@ -37,7 +37,7 @@ EVENT_2_ABI = {
 
 def hex_and_pad(i):
     unpadded_hex_value = hex(i).rstrip("L")
-    return "0x" + unpadded_hex_value[2:].zfill(64)
+    return f"0x{unpadded_hex_value[2:].zfill(64)}"
 
 
 @pytest.mark.parametrize(

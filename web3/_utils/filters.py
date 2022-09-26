@@ -177,10 +177,7 @@ class Filter:
         if log_entries is None:
             return []
 
-        formatted_log_entries = [
-            self.format_entry(log_entry) for log_entry in log_entries
-        ]
-        return formatted_log_entries
+        return [self.format_entry(log_entry) for log_entry in log_entries]
 
 
 class BlockFilter(Filter):
@@ -209,9 +206,7 @@ class LogFilter(Filter):
         super().__init__(*args, **kwargs)
 
     def format_entry(self, entry: LogReceipt) -> LogReceipt:
-        if self.log_entry_formatter:
-            return self.log_entry_formatter(entry)
-        return entry
+        return self.log_entry_formatter(entry) if self.log_entry_formatter else entry
 
     def set_data_filters(
         self, data_filter_set: Collection[Tuple[TypeStr, Any]]
@@ -228,9 +223,11 @@ class LogFilter(Filter):
             )
 
     def is_valid_entry(self, entry: LogReceipt) -> bool:
-        if not self.data_filter_set:
-            return True
-        return bool(self.data_filter_set_function(entry["data"]))
+        return (
+            bool(self.data_filter_set_function(entry["data"]))
+            if self.data_filter_set
+            else True
+        )
 
 
 def decode_utf8_bytes(value: bytes) -> str:

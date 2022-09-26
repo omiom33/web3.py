@@ -99,9 +99,11 @@ def check_manifest_version(
 def check_package_name(manifest: Manifest, warnings: Dict[str, str]) -> Dict[str, str]:
     if "name" not in manifest or not manifest["name"]:
         return assoc(warnings, "name", WARNINGS["name_missing"])
-    if not bool(re.match(PACKAGE_NAME_REGEX, manifest["name"])):
-        return assoc(warnings, "name", WARNINGS["name_invalid"])
-    return warnings
+    return (
+        warnings
+        if bool(re.match(PACKAGE_NAME_REGEX, manifest["name"]))
+        else assoc(warnings, "name", WARNINGS["name_invalid"])
+    )
 
 
 @curry

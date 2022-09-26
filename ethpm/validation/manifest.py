@@ -67,12 +67,11 @@ def _load_schema_data() -> Dict[str, Any]:
 
 
 def extract_contract_types_from_deployments(deployment_data: List[Any]) -> Set[str]:
-    contract_types = {
+    return {
         deployment["contractType"]
         for chain_deployments in deployment_data
         for deployment in chain_deployments.values()
     }
-    return contract_types
 
 
 def validate_manifest_against_schema(manifest: Dict[str, Any]) -> None:
@@ -92,9 +91,7 @@ def validate_manifest_against_schema(manifest: Dict[str, Any]) -> None:
 
 
 def check_for_deployments(manifest: Dict[str, Any]) -> bool:
-    if "deployments" not in manifest or not manifest["deployments"]:
-        return False
-    return True
+    return bool("deployments" in manifest and manifest["deployments"])
 
 
 def validate_build_dependencies_are_present(manifest: Dict[str, Any]) -> None:
@@ -113,8 +110,9 @@ def validate_manifest_deployments(manifest: Dict[str, Any]) -> None:
         all_contract_types = manifest["contractTypes"].keys()
         all_deployments = manifest["deployments"].values()
         all_deployment_names = extract_contract_types_from_deployments(all_deployments)
-        missing_contract_types = all_deployment_names.difference(all_contract_types)
-        if missing_contract_types:
+        if missing_contract_types := all_deployment_names.difference(
+            all_contract_types
+        ):
             raise EthPMValidationError(
                 f"Manifest missing references to contracts: {missing_contract_types}."
             )

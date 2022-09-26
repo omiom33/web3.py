@@ -37,10 +37,7 @@ WS_SCHEMES = {"ws", "wss"}
 
 def load_provider_from_environment() -> BaseProvider:
     uri_string = URI(os.environ.get("WEB3_PROVIDER_URI", ""))
-    if not uri_string:
-        return None
-
-    return load_provider_from_uri(uri_string)
+    return load_provider_from_uri(uri_string) if uri_string else None
 
 
 def load_provider_from_uri(
@@ -84,10 +81,7 @@ class AutoProvider(BaseProvider):
         in an attempt to find an active node. The list will default to
         :attribute:`default_providers`.
         """
-        if potential_providers:
-            self._potential_providers = potential_providers
-        else:
-            self._potential_providers = self.default_providers
+        self._potential_providers = potential_providers or self.default_providers
 
     def make_request(self, method: RPCEndpoint, params: Any) -> RPCResponse:
         try:

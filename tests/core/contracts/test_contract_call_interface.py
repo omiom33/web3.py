@@ -41,38 +41,36 @@ MULTIPLE_FUNCTIONS = json.loads(
 
 @pytest.fixture(params=[b"\x04\x06", "0x0406", "0406"])
 def bytes_contract(w3, BytesContract, request, address_conversion_func):
-    if is_text(request.param) and request.param[:2] != "0x":
-        with pytest.warns(
-            DeprecationWarning,
-            match="in v6 it will be invalid to pass a hex string without "
-            'the "0x" prefix',
-        ):
-            return deploy(
-                w3, BytesContract, address_conversion_func, args=[request.param]
-            )
-    else:
+    if not is_text(request.param) or request.param[:2] == "0x":
         return deploy(w3, BytesContract, address_conversion_func, args=[request.param])
+    with pytest.warns(
+        DeprecationWarning,
+        match="in v6 it will be invalid to pass a hex string without "
+        'the "0x" prefix',
+    ):
+        return deploy(
+            w3, BytesContract, address_conversion_func, args=[request.param]
+        )
 
 
 @pytest_asyncio.fixture(params=[b"\x04\x06", "0x0406", "0406"])
 async def async_bytes_contract(
     async_w3, AsyncBytesContract, request, address_conversion_func
 ):
-    if is_text(request.param) and request.param[:2] != "0x":
-        with pytest.warns(
-            DeprecationWarning,
-            match="in v6 it will be invalid to pass a hex string without "
-            'the "0x" prefix',
-        ):
-            return await async_deploy(
-                async_w3,
-                AsyncBytesContract,
-                address_conversion_func,
-                args=[request.param],
-            )
-    else:
+    if not is_text(request.param) or request.param[:2] == "0x":
         return await async_deploy(
             async_w3, AsyncBytesContract, address_conversion_func, args=[request.param]
+        )
+    with pytest.warns(
+        DeprecationWarning,
+        match="in v6 it will be invalid to pass a hex string without "
+        'the "0x" prefix',
+    ):
+        return await async_deploy(
+            async_w3,
+            AsyncBytesContract,
+            address_conversion_func,
+            args=[request.param],
         )
 
 
@@ -103,12 +101,11 @@ def call_transaction():
     ]
 )
 def bytes32_contract(w3, Bytes32Contract, request, address_conversion_func):
-    if is_text(request.param) and request.param[:2] != "0x":
-        with pytest.warns(DeprecationWarning):
-            return deploy(
-                w3, Bytes32Contract, address_conversion_func, args=[request.param]
-            )
-    else:
+    if not is_text(request.param) or request.param[:2] == "0x":
+        return deploy(
+            w3, Bytes32Contract, address_conversion_func, args=[request.param]
+        )
+    with pytest.warns(DeprecationWarning):
         return deploy(
             w3, Bytes32Contract, address_conversion_func, args=[request.param]
         )
@@ -124,15 +121,14 @@ def bytes32_contract(w3, Bytes32Contract, request, address_conversion_func):
 async def async_bytes32_contract(
     async_w3, AsyncBytes32Contract, request, address_conversion_func
 ):
-    if is_text(request.param) and request.param[:2] != "0x":
-        with pytest.warns(DeprecationWarning):
-            return await async_deploy(
-                async_w3,
-                AsyncBytes32Contract,
-                address_conversion_func,
-                args=[request.param],
-            )
-    else:
+    if not is_text(request.param) or request.param[:2] == "0x":
+        return await async_deploy(
+            async_w3,
+            AsyncBytes32Contract,
+            address_conversion_func,
+            args=[request.param],
+        )
+    with pytest.warns(DeprecationWarning):
         return await async_deploy(
             async_w3,
             AsyncBytes32Contract,
@@ -146,8 +142,7 @@ def undeployed_math_contract(MathContract, address_conversion_func):
     empty_address = address_conversion_func(
         "0x000000000000000000000000000000000000dEaD"
     )
-    _undeployed_math_contract = MathContract(address=empty_address)
-    return _undeployed_math_contract
+    return MathContract(address=empty_address)
 
 
 @pytest_asyncio.fixture()
@@ -155,8 +150,7 @@ async def async_undeployed_math_contract(AsyncMathContract, address_conversion_f
     empty_address = address_conversion_func(
         "0x000000000000000000000000000000000000dEaD"
     )
-    _undeployed_math_contract = AsyncMathContract(address=empty_address)
-    return _undeployed_math_contract
+    return AsyncMathContract(address=empty_address)
 
 
 @pytest.fixture()
@@ -165,8 +159,7 @@ def mismatched_math_contract(w3, StringContract, MathContract, address_conversio
     deploy_receipt = w3.eth.wait_for_transaction_receipt(deploy_txn)
     assert deploy_receipt is not None
     address = address_conversion_func(deploy_receipt["contractAddress"])
-    _mismatched_math_contract = MathContract(address=address)
-    return _mismatched_math_contract
+    return MathContract(address=address)
 
 
 @pytest_asyncio.fixture()
@@ -177,8 +170,7 @@ async def async_mismatched_math_contract(
     deploy_receipt = await async_w3.eth.wait_for_transaction_receipt(deploy_txn)
     assert deploy_receipt is not None
     address = address_conversion_func(deploy_receipt["contractAddress"])
-    _mismatched_math_contract = AsyncMathContract(address=address)
-    return _mismatched_math_contract
+    return AsyncMathContract(address=address)
 
 
 @pytest.fixture()

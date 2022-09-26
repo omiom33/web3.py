@@ -20,7 +20,7 @@ from web3.providers.base import (
 
 def _get_block_by_something(method, params):
     block_identifier = params[0]
-    if block_identifier == "latest" or block_identifier == "0x5":
+    if block_identifier in ["latest", "0x5"]:
         return {
             "hash": "0x0000000000000000000000000000000000000000000000000000000000000005",  # noqa: E501
             "number": 5,
@@ -37,11 +37,10 @@ def _get_block_by_something(method, params):
             "miner": "0x" + "AA" * 20,
             "timestamp": 120,
         }
-    elif (
-        block_identifier
-        == "0x0000000000000000000000000000000000000000000000000000000000000004"
-        or block_identifier == "0x4"
-    ):
+    elif block_identifier in [
+        "0x0000000000000000000000000000000000000000000000000000000000000004",
+        "0x4",
+    ]:
         return {
             "hash": "0x0000000000000000000000000000000000000000000000000000000000000004",  # noqa: E501
             "number": 4,
@@ -54,11 +53,10 @@ def _get_block_by_something(method, params):
             "miner": "0x" + "BB" * 20,
             "timestamp": 90,
         }
-    elif (
-        block_identifier
-        == "0x0000000000000000000000000000000000000000000000000000000000000003"
-        or block_identifier == "0x3"
-    ):
+    elif block_identifier in [
+        "0x0000000000000000000000000000000000000000000000000000000000000003",
+        "0x3",
+    ]:
         return {
             "hash": "0x0000000000000000000000000000000000000000000000000000000000000003",  # noqa: E501
             "number": 3,
@@ -69,11 +67,10 @@ def _get_block_by_something(method, params):
             "miner": "0x" + "Cc" * 20,
             "timestamp": 60,
         }
-    elif (
-        block_identifier
-        == "0x0000000000000000000000000000000000000000000000000000000000000002"
-        or block_identifier == "0x2"
-    ):
+    elif block_identifier in [
+        "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "0x2",
+    ]:
         return {
             "hash": "0x0000000000000000000000000000000000000000000000000000000000000002",  # noqa: E501
             "number": 2,
@@ -82,11 +79,10 @@ def _get_block_by_something(method, params):
             "miner": "0x" + "Bb" * 20,
             "timestamp": 30,
         }
-    elif (
-        block_identifier
-        == "0x0000000000000000000000000000000000000000000000000000000000000001"
-        or block_identifier == "0x1"
-    ):
+    elif block_identifier in [
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x1",
+    ]:
         return {
             "hash": "0x0000000000000000000000000000000000000000000000000000000000000001",  # noqa: E501
             "number": 1,

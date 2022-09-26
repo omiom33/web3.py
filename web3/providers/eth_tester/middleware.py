@@ -338,24 +338,20 @@ async def async_guess_from(async_w3: "Web3", _: TxParams) -> ChecksumAddress:
 def fill_default(
     field: str, guess_func: Callable[..., Any], w3: "Web3", transaction: TxParams
 ) -> TxParams:
-    # type ignored b/c TxParams keys must be string literal types
-    if field in transaction and transaction[field] is not None:  # type: ignore
+    if field in transaction and transaction[field] is not None:
         return transaction
-    else:
-        guess_val = guess_func(w3, transaction)
-        return assoc(transaction, field, guess_val)
+    guess_val = guess_func(w3, transaction)
+    return assoc(transaction, field, guess_val)
 
 
 @curry
 async def async_fill_default(
     field: str, guess_func: Callable[..., Any], async_w3: "Web3", transaction: TxParams
 ) -> TxParams:
-    # type ignored b/c TxParams keys must be string literal types
-    if field in transaction and transaction[field] is not None:  # type: ignore
+    if field in transaction and transaction[field] is not None:
         return transaction
-    else:
-        guess_val = await guess_func(async_w3, transaction)
-        return assoc(transaction, field, guess_val)
+    guess_val = await guess_func(async_w3, transaction)
+    return assoc(transaction, field, guess_val)
 
 
 def default_transaction_fields_middleware(

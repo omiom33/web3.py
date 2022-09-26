@@ -29,12 +29,11 @@ def dummy_ipfs_pin(path: Path) -> Dict[str, str]:
     """
     Return IPFS data as if file was pinned to an actual node.
     """
-    ipfs_return = {
+    return {
         "Hash": generate_file_hash(path.read_bytes()),
         "Name": path.name,
         "Size": str(path.stat().st_size),
     }
-    return ipfs_return
 
 
 def create_ipfs_uri(ipfs_hash: str) -> str:
@@ -48,13 +47,12 @@ def extract_ipfs_path_from_uri(value: str) -> str:
     """
     parse_result = parse.urlparse(value)
 
-    if parse_result.netloc:
-        if parse_result.path:
-            return "".join((parse_result.netloc, parse_result.path.rstrip("/")))
-        else:
-            return parse_result.netloc
-    else:
+    if not parse_result.netloc:
         return parse_result.path.strip("/")
+    if parse_result.path:
+        return "".join((parse_result.netloc, parse_result.path.rstrip("/")))
+    else:
+        return parse_result.netloc
 
 
 def is_ipfs_uri(value: str) -> bool:
@@ -64,10 +62,7 @@ def is_ipfs_uri(value: str) -> bool:
     parse_result = parse.urlparse(value)
     if parse_result.scheme != "ipfs":
         return False
-    if not parse_result.netloc and not parse_result.path:
-        return False
-
-    return True
+    return bool(parse_result.netloc or parse_result.path)
 
 
 #
@@ -83,8 +78,7 @@ LENGTH_32 = b"\x20"
 def multihash(value: bytes) -> bytes:
     data_hash = hashlib.sha256(value).digest()
 
-    multihash_bytes = SHA2_256 + LENGTH_32 + data_hash
-    return multihash_bytes
+    return SHA2_256 + LENGTH_32 + data_hash
 
 
 def serialize_bytes(file_bytes: bytes) -> Descriptor:
@@ -98,9 +92,7 @@ def serialize_bytes(file_bytes: bytes) -> Descriptor:
     )
     data_protobuf_bytes = data_protobuf.SerializeToString()
 
-    file_protobuf = PBNode(Links=[], Data=data_protobuf_bytes)
-
-    return file_protobuf
+    return PBNode(Links=[], Data=data_protobuf_bytes)
 
 
 def generate_file_hash(content_bytes: bytes) -> str:

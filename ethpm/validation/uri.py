@@ -152,7 +152,7 @@ def validate_blob_uri_contents(contents: bytes, blob_uri: str) -> None:
     blob_hash = blob_path.split("/")[-1]
     contents_str = to_text(contents)
     content_length = len(contents_str)
-    hashable_contents = "blob " + str(content_length) + "\0" + contents_str
+    hashable_contents = f"blob {content_length}" + "\0" + contents_str
     hash_object = hashlib.sha1(to_bytes(text=hashable_contents))
     if hash_object.hexdigest() != blob_hash:
         raise EthPMValidationError(

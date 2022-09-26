@@ -76,7 +76,7 @@ async def async_handle_offchain_lookup(
                 " - missing 'data' field."
             )
 
-        encoded_data_with_function_selector = b"".join(
+        return b"".join(
             [
                 # 4-byte callback function selector
                 to_bytes_if_hex(offchain_lookup_payload["callbackFunction"]),
@@ -91,5 +91,4 @@ async def async_handle_offchain_lookup(
             ]
         )
 
-        return encoded_data_with_function_selector
     raise MultipleFailedRequests("Offchain lookup failed for supplied urls.")

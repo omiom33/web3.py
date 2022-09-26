@@ -46,7 +46,7 @@ def test_contract_getLogs_range(
     assert len(log_entries) == 1
 
     log_entries = list(contract.events.LogNoArguments.getLogs(fromBlock=1, toBlock=2))
-    assert len(log_entries) == 0
+    assert not log_entries
 
 
 def test_contract_getLogs_argument_filter(
@@ -55,15 +55,14 @@ def test_contract_getLogs_argument_filter(
 
     contract = emitter
 
-    txn_hashes = []
     event_id = emitter_event_ids.LogTripleWithIndex
-    # 1 = arg0
-    # 4 = arg1
-    # 1 = arg2
-    txn_hashes.append(emitter.functions.logTriple(event_id, 1, 4, 1).transact())
-    txn_hashes.append(emitter.functions.logTriple(event_id, 1, 1, 2).transact())
-    txn_hashes.append(emitter.functions.logTriple(event_id, 1, 2, 2).transact())
-    txn_hashes.append(emitter.functions.logTriple(event_id, 1, 3, 1).transact())
+    txn_hashes = [
+        contract.functions.logTriple(event_id, 1, 4, 1).transact(),
+        contract.functions.logTriple(event_id, 1, 1, 2).transact(),
+        contract.functions.logTriple(event_id, 1, 2, 2).transact(),
+        contract.functions.logTriple(event_id, 1, 3, 1).transact(),
+    ]
+
     for txn_hash in txn_hashes:
         wait_for_transaction(w3, txn_hash)
 

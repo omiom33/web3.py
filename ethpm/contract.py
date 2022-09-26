@@ -62,10 +62,12 @@ class LinkableContract(Contract):
     def factory(cls, w3: "Web3", class_name: str = None, **kwargs: Any) -> Contract:
         dep_link_refs = kwargs.get("unlinked_references")
         bytecode = kwargs.get("bytecode")
-        needs_bytecode_linking = False
-        if dep_link_refs and bytecode:
-            if not is_prelinked_bytecode(to_bytes(hexstr=bytecode), dep_link_refs):
-                needs_bytecode_linking = True
+        needs_bytecode_linking = bool(
+            dep_link_refs
+            and bytecode
+            and not is_prelinked_bytecode(to_bytes(hexstr=bytecode), dep_link_refs)
+        )
+
         kwargs = assoc(kwargs, "needs_bytecode_linking", needs_bytecode_linking)
         return super().factory(w3, class_name, **kwargs)
 
@@ -159,8 +161,7 @@ def apply_all_link_refs(
         for ref in link_refs
         for offset in ref["offsets"]
     )
-    linked_bytecode = pipe(bytecode, *link_fns)
-    return linked_bytecode
+    return pipe(bytecode, *link_fns)
 
 
 @curry
@@ -175,10 +176,9 @@ def apply_link_ref(offset: int, length: int, value: bytes, bytecode: bytes) -> b
         raise BytecodeLinkingError("Link references cannot be applied to bytecode")
 
     address = value if is_canonical_address(value) else to_canonical_address(value)
-    new_bytes = (
+    return (
         # Ignore linting error b/c conflict b/w black & flake8
         bytecode[:offset]
         + address
         + bytecode[offset + length :]  # noqa: E201, E203
     )
-    return new_bytes

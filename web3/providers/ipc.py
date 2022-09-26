@@ -107,7 +107,7 @@ def get_default_ipc_path() -> str:  # type: ignore
         base_trinity_path = Path("~").expanduser() / ".local" / "share" / "trinity"
         ipc_path = str(base_trinity_path / "mainnet" / "ipcs-eth1" / "jsonrpc.ipc")
         if Path(ipc_path).exists():
-            return str(ipc_path)
+            return ipc_path
 
     elif sys.platform.startswith("linux") or sys.platform.startswith("freebsd"):
         ipc_path = os.path.expanduser(os.path.join("~", ".ethereum", "geth.ipc"))
@@ -123,7 +123,7 @@ def get_default_ipc_path() -> str:  # type: ignore
         base_trinity_path = Path("~").expanduser() / ".local" / "share" / "trinity"
         ipc_path = str(base_trinity_path / "mainnet" / "ipcs-eth1" / "jsonrpc.ipc")
         if Path(ipc_path).exists():
-            return str(ipc_path)
+            return ipc_path
 
     elif sys.platform == "win32":
         ipc_path = os.path.join("\\\\", ".", "pipe", "geth.ipc")
@@ -187,7 +187,7 @@ class IPCProvider(JSONBaseProvider):
     ) -> None:
         if ipc_path is None:
             self.ipc_path = get_default_ipc_path()
-        elif isinstance(ipc_path, str) or isinstance(ipc_path, Path):
+        elif isinstance(ipc_path, (str, Path)):
             self.ipc_path = str(Path(ipc_path).expanduser().resolve())
         else:
             raise TypeError("ipc_path must be of type string or pathlib.Path")
@@ -222,9 +222,13 @@ class IPCProvider(JSONBaseProvider):
                     except socket.timeout:
                         timeout.sleep(0)
                         continue
-                    if raw_response == b"":
+                    if (
+                        raw_response == b""
+                        or raw_response != b""
+                        and not has_valid_json_rpc_ending(raw_response)
+                    ):
                         timeout.sleep(0)
-                    elif has_valid_json_rpc_ending(raw_response):
+                    else:
                         try:
                             response = self.decode_rpc_response(raw_response)
                         except JSONDecodeError:
@@ -232,16 +236,12 @@ class IPCProvider(JSONBaseProvider):
                             continue
                         else:
                             return response
-                    else:
-                        timeout.sleep(0)
-                        continue
 
 
 # A valid JSON RPC response can only end in } or ] http://www.jsonrpc.org/specification
 def has_valid_json_rpc_ending(raw_response: bytes) -> bool:
     stripped_raw_response = raw_response.rstrip()
-    for valid_ending in [b"}", b"]"]:
-        if stripped_raw_response.endswith(valid_ending):
-            return True
-    else:
-        return False
+    return any(
+        stripped_raw_response.endswith(valid_ending)
+        for valid_ending in [b"}", b"]"]
+    )

@@ -193,12 +193,11 @@ class BaseEth(Module):
         if "from" not in transaction and is_checksum_address(self.default_account):
             transaction = assoc(transaction, "from", self.default_account)
 
-        if block_identifier is None:
-            params: Sequence[Union[TxParams, BlockIdentifier]] = [transaction]
-        else:
-            params = [transaction, block_identifier]
-
-        return params
+        return (
+            [transaction]
+            if block_identifier is None
+            else [transaction, block_identifier]
+        )
 
     _estimate_gas: Method[Callable[..., int]] = Method(
         RPC.eth_estimateGas, mungers=[estimate_gas_munger]
@@ -333,10 +332,7 @@ class BaseEth(Module):
 
         ContractFactory = ContractFactoryClass.factory(self.w3, **kwargs)
 
-        if address:
-            return ContractFactory(address)
-        else:
-            return ContractFactory
+        return ContractFactory(address) if address else ContractFactory
 
     def set_contract_factory(
         self,

@@ -47,8 +47,7 @@ if TYPE_CHECKING:
 
 
 def resolve_uri_contents(uri: URI, fingerprint: bool = None) -> bytes:
-    resolvable_backends = get_resolvable_backends_for_uri(uri)
-    if resolvable_backends:
+    if resolvable_backends := get_resolvable_backends_for_uri(uri):
         for backend in resolvable_backends:
             try:
                 # type ignored to handle case if URI is returned
@@ -57,8 +56,7 @@ def resolve_uri_contents(uri: URI, fingerprint: bool = None) -> bytes:
                 continue
             return contents
 
-    translatable_backends = get_translatable_backends_for_uri(uri)
-    if translatable_backends:
+    if translatable_backends := get_translatable_backends_for_uri(uri):
         if fingerprint:
             raise CannotHandleURI(
                 "Registry URIs must point to a resolvable content-addressed URI."
@@ -97,9 +95,7 @@ def is_supported_content_addressed_uri(uri: URI) -> bool:
     Returns a bool indicating whether provided uri is currently supported.
     Currently Py-EthPM only supports IPFS and Github blob content-addressed uris.
     """
-    if not is_ipfs_uri(uri) and not is_valid_content_addressed_github_uri(uri):
-        return False
-    return True
+    return bool(is_ipfs_uri(uri) or is_valid_content_addressed_github_uri(uri))
 
 
 def create_latest_block_uri(w3: "Web3", from_blocks_ago: int = 3) -> URI:
@@ -135,7 +131,4 @@ def check_if_chain_matches_chain_uri(w3: "Web3", blockchain_uri: URI) -> bool:
     else:
         raise ValueError(f"Unsupported resource type: {resource_type}")
 
-    if encode_hex(resource["hash"]) == resource_hash:
-        return True
-    else:
-        return False
+    return encode_hex(resource["hash"]) == resource_hash

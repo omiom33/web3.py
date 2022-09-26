@@ -377,13 +377,7 @@ class BaseContract:
     #  Public API
     #
     @combomethod
-    def encodeABI(
-        cls,
-        fn_name: str,
-        args: Optional[Any] = None,
-        kwargs: Optional[Any] = None,
-        data: Optional[HexStr] = None,
-    ) -> HexStr:
+    def encodeABI(self, fn_name: str, args: Optional[Any] = None, kwargs: Optional[Any] = None, data: Optional[HexStr] = None) -> HexStr:
         """
         Encodes the arguments using the Ethereum ABI for the contract function
         that matches the given name and arguments..
@@ -391,17 +385,14 @@ class BaseContract:
         :param data: defaults to function selector
         """
         fn_abi, fn_selector, fn_arguments = get_function_info(
-            fn_name,
-            cls.w3.codec,
-            contract_abi=cls.abi,
-            args=args,
-            kwargs=kwargs,
+            fn_name, self.w3.codec, contract_abi=self.abi, args=args, kwargs=kwargs
         )
+
 
         if data is None:
             data = fn_selector
 
-        return encode_abi(cls.w3, fn_abi, fn_arguments, data)
+        return encode_abi(self.w3, fn_abi, fn_arguments, data)
 
     @combomethod
     def all_functions(
@@ -547,12 +538,8 @@ class BaseContract:
         )
 
     @combomethod
-    def _encode_constructor_data(
-        cls, args: Optional[Any] = None, kwargs: Optional[Any] = None
-    ) -> HexStr:
-        constructor_abi = get_constructor_abi(cls.abi)
-
-        if constructor_abi:
+    def _encode_constructor_data(self, args: Optional[Any] = None, kwargs: Optional[Any] = None) -> HexStr:
+        if constructor_abi := get_constructor_abi(self.abi):
             if args is None:
                 args = tuple()
             if kwargs is None:
@@ -560,26 +547,19 @@ class BaseContract:
 
             arguments = merge_args_and_kwargs(constructor_abi, args, kwargs)
 
-            deploy_data = add_0x_prefix(
-                encode_abi(cls.w3, constructor_abi, arguments, data=cls.bytecode)
+            return add_0x_prefix(
+                encode_abi(self.w3, constructor_abi, arguments, data=self.bytecode)
             )
+
         else:
             if args is not None or kwargs is not None:
                 msg = "Constructor args were provided, but no constructor function was provided."  # noqa: E501
                 raise TypeError(msg)
 
-            deploy_data = to_hex(cls.bytecode)
-
-        return deploy_data
+            return to_hex(self.bytecode)
 
     @combomethod
-    def find_functions_by_identifier(
-        cls,
-        contract_abi: ABI,
-        w3: "Web3",
-        address: ChecksumAddress,
-        callable_check: Callable[..., Any],
-    ) -> List[Any]:
+    def find_functions_by_identifier(self, contract_abi: ABI, w3: "Web3", address: ChecksumAddress, callable_check: Callable[..., Any]) -> List[Any]:
         raise NotImplementedError(
             "This method should be implemented in the inherited class"
         )
@@ -720,13 +700,7 @@ class Contract(BaseContract):
         return ContractConstructor(cls.w3, cls.abi, cls.bytecode, *args, **kwargs)
 
     @combomethod
-    def find_functions_by_identifier(
-        cls,
-        contract_abi: ABI,
-        w3: "Web3",
-        address: ChecksumAddress,
-        callable_check: Callable[..., Any],
-    ) -> List["ContractFunction"]:
+    def find_functions_by_identifier(self, contract_abi: ABI, w3: "Web3", address: ChecksumAddress, callable_check: Callable[..., Any]) -> List["ContractFunction"]:
         return find_functions_by_identifier(  # type: ignore
             contract_abi, w3, address, callable_check, ContractFunction
         )
@@ -823,13 +797,7 @@ class AsyncContract(BaseContract):
         return AsyncContractConstructor(cls.w3, cls.abi, cls.bytecode, *args, **kwargs)
 
     @combomethod
-    def find_functions_by_identifier(
-        cls,
-        contract_abi: ABI,
-        w3: "Web3",
-        address: ChecksumAddress,
-        callable_check: Callable[..., Any],
-    ) -> List["AsyncContractFunction"]:
+    def find_functions_by_identifier(self, contract_abi: ABI, w3: "Web3", address: ChecksumAddress, callable_check: Callable[..., Any]) -> List["AsyncContractFunction"]:
         return find_functions_by_identifier(  # type: ignore
             contract_abi, w3, address, callable_check, AsyncContractFunction
         )
@@ -850,22 +818,19 @@ class BaseContractConstructor:
 
     @combomethod
     def _encode_data_in_transaction(self, *args: Any, **kwargs: Any) -> HexStr:
-        constructor_abi = get_constructor_abi(self.abi)
-
-        if constructor_abi:
+        if constructor_abi := get_constructor_abi(self.abi):
             if not args:
                 args = tuple()
             if not kwargs:
                 kwargs = {}
 
             arguments = merge_args_and_kwargs(constructor_abi, args, kwargs)
-            data = add_0x_prefix(
+            return add_0x_prefix(
                 encode_abi(self.w3, constructor_abi, arguments, data=self.bytecode)
             )
-        else:
-            data = to_hex(self.bytecode)
 
-        return data
+        else:
+            return to_hex(self.bytecode)
 
     @combomethod
     def _estimate_gas(self, transaction: Optional[TxParams] = None) -> TxParams:
@@ -916,8 +881,7 @@ class BaseContractConstructor:
     def check_forbidden_keys_in_transaction(
         transaction: TxParams, forbidden_keys: Optional[Collection[str]] = None
     ) -> None:
-        keys_found = transaction.keys() & forbidden_keys
-        if keys_found:
+        if keys_found := transaction.keys() & forbidden_keys:
             raise ValueError(
                 f"Cannot set '{', '.join(keys_found)}' field(s) in transaction"
             )
@@ -1157,8 +1121,10 @@ class BaseContractFunction:
         return built_transaction
 
     @combomethod
-    def _encode_transaction_data(cls) -> HexStr:
-        return add_0x_prefix(encode_abi(cls.w3, cls.abi, cls.arguments, cls.selector))
+    def _encode_transaction_data(self) -> HexStr:
+        return add_0x_prefix(
+            encode_abi(self.w3, self.abi, self.arguments, self.selector)
+        )
 
     _return_data_normalizers: Optional[Tuple[Callable[..., Any], ...]] = tuple()
 
@@ -1167,7 +1133,7 @@ class BaseContractFunction:
             _repr = f"<Function {abi_to_signature(self.abi)}"
             if self.arguments is not None:
                 _repr += f" bound to {self.arguments!r}"
-            return _repr + ">"
+            return f"{_repr}>"
         return f"<Function {self.fn_name}>"
 
     @classmethod
@@ -1180,15 +1146,8 @@ class BaseContractFunction:
 class ContractFunction(BaseContractFunction):
     def __call__(self, *args: Any, **kwargs: Any) -> "ContractFunction":
         clone = copy.copy(self)
-        if args is None:
-            clone.args = tuple()
-        else:
-            clone.args = args
-
-        if kwargs is None:
-            clone.kwargs = {}
-        else:
-            clone.kwargs = kwargs
+        clone.args = tuple() if args is None else args
+        clone.kwargs = {} if kwargs is None else kwargs
         clone._set_function_info()
         return clone
 
@@ -1291,15 +1250,8 @@ class ContractFunction(BaseContractFunction):
 class AsyncContractFunction(BaseContractFunction):
     def __call__(self, *args: Any, **kwargs: Any) -> "AsyncContractFunction":
         clone = copy.copy(self)
-        if args is None:
-            clone.args = tuple()
-        else:
-            clone.args = args
-
-        if kwargs is None:
-            clone.kwargs = {}
-        else:
-            clone.kwargs = kwargs
+        clone.args = tuple() if args is None else args
+        clone.kwargs = {} if kwargs is None else kwargs
         clone._set_function_info()
         return clone
 
@@ -1417,12 +1369,7 @@ class BaseContractEvent:
 
     def __init__(self, *argument_names: Tuple[str]) -> None:
 
-        if argument_names is None:
-            # https://github.com/python/mypy/issues/6283
-            self.argument_names = tuple()  # type: ignore
-        else:
-            self.argument_names = argument_names
-
+        self.argument_names = tuple() if argument_names is None else argument_names
         self.abi = self._get_event_abi()
 
     @classmethod
@@ -1493,7 +1440,7 @@ class BaseContractEvent:
             )
 
         if argument_filters is None:
-            argument_filters = dict()
+            argument_filters = {}
 
         _filters = dict(**argument_filters)
 
@@ -1571,7 +1518,7 @@ class BaseContractEvent:
             )
 
         if argument_filters is None:
-            argument_filters = dict()
+            argument_filters = {}
 
         _filters = dict(**argument_filters)
 
@@ -2033,10 +1980,7 @@ def call_contract_function(
     )
     normalized_data = map_abi_data(_normalizers, output_types, output_data)
 
-    if len(normalized_data) == 1:
-        return normalized_data[0]
-    else:
-        return normalized_data
+    return normalized_data[0] if len(normalized_data) == 1 else normalized_data
 
 
 async def async_call_contract_function(
@@ -2109,10 +2053,7 @@ async def async_call_contract_function(
     )
     normalized_data = map_abi_data(_normalizers, output_types, output_data)
 
-    if len(normalized_data) == 1:
-        return normalized_data[0]
-    else:
-        return normalized_data
+    return normalized_data[0] if len(normalized_data) == 1 else normalized_data
 
 
 def parse_block_identifier(
@@ -2196,8 +2137,7 @@ def transact_with_contract_function(
         fn_kwargs=kwargs,
     )
 
-    txn_hash = w3.eth.send_transaction(transact_transaction)
-    return txn_hash
+    return w3.eth.send_transaction(transact_transaction)
 
 
 async def async_transact_with_contract_function(

@@ -302,7 +302,7 @@ class Web3:
         )
 
     @combomethod
-    def solidityKeccak(cls, abi_types: List[TypeStr], values: List[Any]) -> bytes:
+    def solidityKeccak(self, abi_types: List[TypeStr], values: List[Any]) -> bytes:
         """
         Executes keccak256 exactly as Solidity does.
         Takes list of abi_types as inputs -- `[uint24, int8[], bool]`
@@ -314,10 +314,7 @@ class Web3:
                 f"{len(abi_types)} types and {len(values)} values."
             )
 
-        if isinstance(cls, type):
-            w3 = None
-        else:
-            w3 = cls
+        w3 = None if isinstance(self, type) else self
         normalized_values = map_abi_data([abi_ens_resolver(w3)], abi_types, values)
 
         hex_string = add_0x_prefix(
@@ -328,7 +325,7 @@ class Web3:
                 )
             )
         )
-        return cls.keccak(hexstr=hex_string)
+        return self.keccak(hexstr=hex_string)
 
     def attach_modules(
         self, modules: Optional[Dict[str, Union[Type[Module], Sequence[Any]]]]

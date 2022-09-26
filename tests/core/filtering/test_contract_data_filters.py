@@ -200,8 +200,7 @@ def test_data_filters_with_fixed_arguments(
             ],
         )
 
-    txn_hashes = []
-    txn_hashes.append(
+    txn_hashes = [
         emitter.functions.logQuadruple(
             which=5,
             arg0=vals["matching"][0],
@@ -209,9 +208,14 @@ def test_data_filters_with_fixed_arguments(
             arg2=vals["matching"][2],
             arg3=vals["matching"][3],
         ).transact(
-            {"maxFeePerGas": 10**9, "maxPriorityFeePerGas": 10**9, "gas": 100000}
+            {
+                "maxFeePerGas": 10**9,
+                "maxPriorityFeePerGas": 10**9,
+                "gas": 100000,
+            }
         )
-    )
+    ]
+
     txn_hashes.append(
         emitter.functions.logQuadruple(
             which=5,
@@ -252,12 +256,14 @@ def test_data_filters_with_list_arguments(
         filter_builder.args["arg1"].match_single(matching)
         event_filter = filter_builder.deploy(w3)
 
-        txn_hashes = []
-        txn_hashes.append(
-            emitter.functions.logListArgs(arg0=matching, arg1=matching).transact(
+        txn_hashes = [
+            emitter.functions.logListArgs(
+                arg0=matching, arg1=matching
+            ).transact(
                 {"maxFeePerGas": 10**9, "maxPriorityFeePerGas": 10**9}
             )
-        )
+        ]
+
         txn_hashes.append(
             emitter.functions.logListArgs(
                 arg0=non_matching, arg1=non_matching

@@ -27,7 +27,7 @@ def result_formatter(method, module):
 
 
 class DummyProvider(BaseProvider):
-    def make_request(method, params):
+    def make_request(self, params):
         raise NotImplementedError
 
 
@@ -44,12 +44,11 @@ class ModuleForTest(Module):
 
 @pytest.fixture
 def dummy_w3():
-    w3 = Web3(
+    return Web3(
         DummyProvider(),
         middlewares=[result_middleware],
         modules={"module": ModuleForTest},
     )
-    return w3
 
 
 def test_result_formatter(dummy_w3):

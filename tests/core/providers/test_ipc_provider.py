@@ -40,7 +40,7 @@ def test_ipc_no_path():
 
 
 def test_ipc_tilda_in_path():
-    expectedPath = str(pathlib.Path.home()) + "/foo"
+    expectedPath = f"{str(pathlib.Path.home())}/foo"
     assert IPCProvider("~/foo").ipc_path == expectedPath
     assert IPCProvider(pathlib.Path("~/foo")).ipc_path == expectedPath
 

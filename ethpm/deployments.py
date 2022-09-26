@@ -50,8 +50,7 @@ class Deployments:
         return item_dict.items()
 
     def values(self) -> List[Dict[str, str]]:
-        values = [self.get(name) for name in self.deployment_data]
-        return values
+        return [self.get(name) for name in self.deployment_data]
 
     def get_instance(self, contract_name: str) -> Contract:
         """

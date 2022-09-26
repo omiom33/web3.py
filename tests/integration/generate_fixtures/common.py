@@ -193,13 +193,12 @@ def get_geth_process(
 
 
 def get_process(run_command):
-    proc = subprocess.Popen(
+    return subprocess.Popen(
         run_command,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    return proc
 
 
 def mine_block(w3):
@@ -214,8 +213,7 @@ def mine_block(w3):
             return block_number
         else:
             time.sleep(0.1)
-    else:
-        raise ValueError("No block mined during wait period")
+    raise ValueError("No block mined during wait period")
 
 
 def mine_transaction_hash(w3, txn_hash):
@@ -231,10 +229,9 @@ def mine_transaction_hash(w3, txn_hash):
             return receipt
         else:
             time.sleep(0.1)
-    else:
-        raise ValueError(
-            "Math contract deploy transaction not mined during wait period"
-        )
+    raise ValueError(
+        "Math contract deploy transaction not mined during wait period"
+    )
 
 
 def deploy_contract(w3, name, factory):

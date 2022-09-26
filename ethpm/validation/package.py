@@ -25,7 +25,7 @@ def validate_minimal_contract_factory_data(contract_data: Dict[str, str]) -> Non
     Validate that contract data in a package contains at least an "abi" and
     "deploymentBytecode" necessary to generate a deployable contract factory.
     """
-    if not all(key in contract_data.keys() for key in ("abi", "deploymentBytecode")):
+    if any(key not in contract_data for key in ("abi", "deploymentBytecode")):
         raise InsufficientAssetsError(
             "Minimum required contract data to generate a deployable "
             "contract factory (abi & deploymentBytecode) not found."
@@ -55,7 +55,7 @@ def validate_manifest_version(version: str) -> None:
     """
     Raise an exception if the version is not "ethpm/3".
     """
-    if not version == "ethpm/3":
+    if version != "ethpm/3":
         raise EthPMValidationError(
             f"Py-EthPM does not support the provided specification version: {version}"
         )

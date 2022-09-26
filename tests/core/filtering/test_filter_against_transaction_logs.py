@@ -19,10 +19,11 @@ def test_sync_filter_against_log_events(
 
     txn_filter = w3.eth.filter({})
 
-    txn_hashes = set()
-    txn_hashes.add(
-        emitter.functions.logNoArgs(emitter_event_ids.LogNoArguments).transact()
-    )
+    txn_hashes = {
+        emitter.functions.logNoArgs(
+            emitter_event_ids.LogNoArguments
+        ).transact()
+    }
 
     for txn_hash in txn_hashes:
         wait_for_transaction(w3, txn_hash)
@@ -47,11 +48,12 @@ def test_async_filter_against_log_events(
     txn_filter = w3.eth.filter({})
     txn_filter.watch(seen_logs.append)
 
-    txn_hashes = set()
+    txn_hashes = {
+        emitter.functions.logNoArgs(
+            emitter_event_ids.LogNoArguments
+        ).transact()
+    }
 
-    txn_hashes.add(
-        emitter.functions.logNoArgs(emitter_event_ids.LogNoArguments).transact()
-    )
 
     for txn_hash in txn_hashes:
         wait_for_transaction(w3, txn_hash)

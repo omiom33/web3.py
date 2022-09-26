@@ -1395,9 +1395,7 @@ def invoke_contract(
         )
 
     function = contract.functions[contract_function]
-    result = getattr(function(*func_args, **func_kwargs), api_call_desig)(tx_params)
-
-    return result
+    return getattr(function(*func_args, **func_kwargs), api_call_desig)(tx_params)
 
 
 async def async_invoke_contract(

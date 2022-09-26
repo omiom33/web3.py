@@ -8,7 +8,7 @@ from eth_utils import (
 
 @to_tuple
 def deploy_contracts(w3, contract, wait_for_transaction):
-    for i in range(25):
+    for _ in range(25):
         tx_hash = contract.constructor().transact()
         wait_for_transaction(w3, tx_hash)
         yield w3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
@@ -28,8 +28,7 @@ def single_transaction(w3):
     _from = accounts[random.randint(0, len(accounts) - 1)]
     _to = accounts[random.randint(0, len(accounts) - 1)]
     value = 50
-    tx_hash = w3.eth.send_transaction({"from": _from, "to": _to, "value": value})
-    return tx_hash
+    return w3.eth.send_transaction({"from": _from, "to": _to, "value": value})
 
 
 @pytest.mark.parametrize("api_style", ("v4", "build_filter"))

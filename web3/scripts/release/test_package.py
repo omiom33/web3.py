@@ -35,11 +35,7 @@ def find_wheel(project_path: Path) -> Path:
 def install_wheel(
     venv_path: Path, wheel_path: Path, extras: Tuple[str, ...] = ()
 ) -> None:
-    if extras:
-        extra_suffix = f"[{','.join(extras)}]"
-    else:
-        extra_suffix = ""
-
+    extra_suffix = f"[{','.join(extras)}]" if extras else ""
     subprocess.run(
         [venv_path / "bin" / "pip", "install", f"{wheel_path}{extra_suffix}"],
         check=True,
